@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+   <link rel="stylesheet" href="./assets/style.css">
+   <script src="https://kit.fontawesome.com/e341ed51c4.js" crossorigin="anonymous"></script>
+</head>
+
+<body>
+   <div id="logo-container">
+      <img style="height: 30vh" src="https://cdn.discordapp.com/attachments/1120751612177158165/1123843814952538152/alrp.png" alt="Logo" class="logo-image">
+   </div>
+
+
+   <div id="music-controls">
+      <button id="play-pause-button" class="icon-button"><i id="play-pause-icon" class="fa fa-play"></i></button>
+      <button id="skip-button" class="icon-button"><i class="fas fa-forward"></i></button>
+      <button id="shuffle-button" class="icon-button"><i id="shuffle-icon" class="fas fa-random"></i></button>
+      <input type="range" id="volume-slider" min="0" max="2" step="0.1" value="1">
+   </div> 
+
+   <div id="video-container"></div>
+
+   <div class="custom-loader"></div>
+
+   <div id="music-info">
+      <p id="current-song-name"></p>
+   </div>
+
+   
+   <div class="invite-boxes">
+      <div class="invite-box">
+         <a href="https://discord.gg/N7kS7PVmjf" target="_blank"><i class="fa-brands fa-discord"></i>ALRP</a>
+      </div>
+   </div>
+
+   <script>
+    function getYouTubeID(url) {
+       var match = url.match(/[?&]v=([^&#]+)/);
+       return match && match[1];
+    }
+
+    function createYouTubePlayer() {
+       var videoId = getYouTubeID("https://www.youtube.com/watch?v=XLhE4GpQzQI");
+       if (videoId) {
+          var playerContainer = document.getElementById("video-container");
+          var player = document.createElement("iframe");
+          player.setAttribute("src", "https://www.youtube.com/embed/" + videoId + "?autoplay=1&loop=1&controls=0&showinfo=0&rel=0&mute=1&playlist=" + videoId + "&start=50");
+          player.setAttribute("frameborder", "0");
+          player.setAttribute("allowfullscreen", "true");
+          playerContainer.appendChild(player);
+       }
+    }
+
+    createYouTubePlayer();
+
+    var audio = new Audio();
+    var musicList = [
+       "audio/Welcome to Our City.mp3"
+    ];
+    var currentSongIndex = 0;
+    var isPlaying = false;
+    var isShuffling = false;
+    var isSongResumed = false;
+
+    function playMusic() {
+       if (!isSongResumed) {
+          currentSongIndex = getNextSongIndex();
+       }
+       var url = musicList[currentSongIndex];
+       audio.src = url;
+       audio.play();
+       isPlaying = true;
+       updatePlayPauseButton();
+       updateCurrentSongName();
+       animateCubes(); // Show the loader
+       isSongResumed = false;
+    }
+
+    function pauseMusic() {
+       audio.pause();
+       isPlaying = false;
+       updatePlayPauseButton();
+       updateCurrentSongName(); // Clear the current song name
+       stopAnimation(); // Hide the loader
+    }
+
+    function updatePlayPauseButton() {
+       var playPauseIcon = document.getElementById("play-pause-icon");
+
+       if (isPlaying) {
+          playPauseIcon.classList.remove("fa-play");
+          playPauseIcon.classList.add("fa-pause");
+       } else {
+          playPauseIcon.classList.remove("fa-pause");
+          playPauseIcon.classList.add("fa-play");
+       }
+    }
+
+    function updateCurrentSongName() {
+       var currentSongName = document.getElementById("current-song-name");
+       currentSongName.textContent = isPlaying ? getSongNameFromUrl(musicList[currentSongIndex]) : "";
+    }
+
+    function getSongNameFromUrl(url) {
+       var parts = url.split("/");
+       var fileName = parts[parts.length - 1];
+       return fileName.replace(".mp3", "");
+    }
+
+    function getRandomIndex(max) {
+       return Math.floor(Math.random() * max);
+    }
+
+    document.getElementById("play-pause-button").addEventListener("click", function() {
+       if (isPlaying) {
+          pauseMusic();
+       } else {
+          isSongResumed = true;
+          playMusic();
+       }
+    });
+
+    audio.addEventListener("ended", function() {
+       currentSongIndex = getNextSongIndex();
+       playMusic();
+    });
+
+    function updateVolume() {
+       var volumeSlider = document.getElementById("volume-slider");
+       audio.volume = volumeSlider.value;
+    }
+
+    document.getElementById("volume-slider").addEventListener("input", function() {
+       updateVolume();
+    });
+
+    document.getElementById("skip-button").addEventListener("click", function() {
+       currentSongIndex = getNextSongIndex();
+       playMusic();
+    });
+
+    document.getElementById("shuffle-button").addEventListener("click", function() {
+       toggleShuffle();
+    });
+
+    function toggleShuffle() {
+       isShuffling = !isShuffling;
+       var shuffleButton = document.getElementById("shuffle-button");
+       var shuffleIcon = document.getElementById("shuffle-icon");
+       shuffleButton.classList.toggle("active", isShuffling);
+       shuffleIcon.classList.toggle("fa-random", !isShuffling);
+       shuffleIcon.classList.toggle("fa-sync", isShuffling);
+    }
+
+    function getNextSongIndex() {
+       if (isShuffling) {
+          return getRandomIndex(musicList.length);
+       } else {
+          return (currentSongIndex + 1) % musicList.length;
+       }
+    }
+
+    audio.addEventListener("ended", function() {
+       currentSongIndex = getNextSongIndex();
+       playMusic();
+    });
+
+    function animateCubes() {
+       var loader = document.querySelector('.custom-loader');
+       loader.style.display = 'block';
+    }
+
+    function stopAnimation() {
+       var loader = document.querySelector('.custom-loader');
+       loader.style.display = 'none';
+    }
+ </script>
+</body>
+
+</html>
